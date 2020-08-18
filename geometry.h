@@ -1,3 +1,4 @@
+#include "math.h"
 #include "stdbool.h"
 #include "bitmap.h"
 
@@ -14,6 +15,7 @@ struct XY {
     int x, y;
 };
 
+double area(XY a, XY b, XY c);
 bool oriented(XY a, XY b, XY c);
 XY project(XYZ xyz, HW frame);
 
@@ -32,5 +34,7 @@ void init_trigs(Trigs* tsp);
 void append_trig(Trigs* tsp, Trig t);
 void qsort_trigs(Trigs* tsp);
 void free_trigs(Trigs* tsp);
+
+double horizontality(Trig* tp);
 
 #endif//GEOMETRY_H  

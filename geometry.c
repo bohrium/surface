@@ -66,3 +66,16 @@ void free_trigs(Trigs* tsp)
     free(tsp->data); tsp->data = NULL;
     tsp->cap = tsp->len = 0;
 }
+
+double horizontality(Trig* tp)
+{
+    XYZ a = tp->a;
+    XYZ b = tp->b;
+    XYZ c = tp->c;
+    double xx = (b.y-a.y)*(c.z-a.z) - (b.z-a.z)*(c.y-a.y); 
+    double yy = (b.z-a.z)*(c.x-a.x) - (b.x-a.x)*(c.z-a.z); 
+    double zz = (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x); 
+    return sqrt(yy*yy / (xx*xx + yy*yy + zz*zz)); 
+}
+
+
