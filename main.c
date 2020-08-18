@@ -1,6 +1,8 @@
 #include "stdlib.h"
+#include "math.h"
 #include "bitmap.h"
 #include "geometry.h"
+#include "render.h"
 
 void main()
 {
@@ -16,11 +18,37 @@ void main()
         }
     }
 
+    XYZ q0, q1, q2, q3;
+
+    for (double t = -3.14/2; t < 3.14/2; t += 0.10) {
+        double z = 2.0 + cos(t+0.00);
+        q0 = (XYZ){sin(t+0.00), -0.5, 2.0 + cos(t+0.00)}; 
+        q1 = (XYZ){sin(t+0.05), -0.5, 2.0 + cos(t+0.05)}; 
+        q2 = (XYZ){sin(t+0.05), +0.5, 2.0 + cos(t+0.05)}; 
+        q3 = (XYZ){sin(t+0.00), +0.5, 2.0 + cos(t+0.00)}; 
+        draw_triangle(&bm, q0, q1, q2, (RGB){250,200/z,210});
+        draw_triangle(&bm, q0, q2, q3, (RGB){250,200/z,210});
+    }
+
     // triangle
-    XY p0 = { 30,  30};
-    XY p1 = {190, 190};
-    XY p2 = { 60, 160};
-    draw_triangle(&bm, p0, p1, p2, (RGB){250,200,210});
+    q0 = (XYZ){-0.30, -0.30, 1.0};
+    q1 = (XYZ){0.90, 0.60, 1.0};
+    q2 = (XYZ){0.80, 0.80, 1.0};
+    q3 = (XYZ){0.60, 0.90, 1.0};
+    draw_triangle(&bm, q0, q1, q2, (RGB){50,200,210});
+    draw_triangle(&bm, q0, q2, q3, (RGB){50,100,210});
+
+    for (double t = 3.14/2; t < 3.14; t += 0.10) {
+        double z = 2.0 + cos(t+0.00);
+        q0 = (XYZ){sin(t+0.00), -0.5, 2.0 + cos(t+0.00)}; 
+        q1 = (XYZ){sin(t+0.05), -0.5, 2.0 + cos(t+0.05)}; 
+        q2 = (XYZ){sin(t+0.05), +0.5, 2.0 + cos(t+0.05)}; 
+        q3 = (XYZ){sin(t+0.00), +0.5, 2.0 + cos(t+0.00)}; 
+        draw_triangle(&bm, q0, q1, q2, (RGB){250,200/z,210});
+        draw_triangle(&bm, q0, q2, q3, (RGB){250,200/z,210});
+    }
+
+
 
     write_to(&bm, "moo.bmp");
     deallocate(&bm);
