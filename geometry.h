@@ -31,6 +31,7 @@ struct Trigs {
 };
 
 void init_trigs(Trigs* tsp);
+void append_small_trig(Trigs* tsp, Trig t);
 void append_trig(Trigs* tsp, Trig t);
 void qsort_trigs(Trigs* tsp);
 void free_trigs(Trigs* tsp);

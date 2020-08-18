@@ -3,6 +3,10 @@
 #include "stdlib.h"
 #include "geometry.h"
 
+#define EPS 0.05
+
+#define ABS(X) ((X)>0?(X):-(X))
+
 bool oriented(XY a, XY b, XY c)
 {
     return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x) >= 0.0;
@@ -24,6 +28,23 @@ void init_trigs(Trigs* tsp)
     *tsp = (Trigs){.cap=0, .len=0, .data=NULL};
 }
 
+void append_small_trig(Trigs* tsp, Trig t)
+{
+    if (
+        ABS(t.b.x - t.a.x) < EPS && ABS(t.c.x - t.b.x) < EPS && ABS(t.a.x - t.c.x) < EPS &&
+        ABS(t.b.y - t.a.y) < EPS && ABS(t.c.y - t.b.y) < EPS && ABS(t.a.y - t.c.y) < EPS &&
+        ABS(t.b.z - t.a.z) < EPS && ABS(t.c.z - t.b.z) < EPS && ABS(t.a.z - t.c.z) < EPS ) {
+        append_trig(tsp, t);
+    } else {
+        XYZ avga = { .x=(t.b.x+t.c.x)/2, .y=(t.b.y+t.c.y)/2, .z=(t.b.z+t.c.z)/2 };
+        XYZ avgb = { .x=(t.c.x+t.a.x)/2, .y=(t.c.y+t.a.y)/2, .z=(t.c.z+t.a.z)/2 };
+        XYZ avgc = { .x=(t.a.x+t.b.x)/2, .y=(t.a.y+t.b.y)/2, .z=(t.a.z+t.b.z)/2 };
+        append_small_trig(tsp, (Trig){avga, avgb, t.c });
+        append_small_trig(tsp, (Trig){t.a , avgb, avgc});
+        append_small_trig(tsp, (Trig){avga, t.b , avgc});
+        append_small_trig(tsp, (Trig){avga, avgb, avgc});
+    }
+}
 void append_trig(Trigs* tsp, Trig t)
 {
     if ( tsp->len == tsp->cap ) {
