@@ -1,5 +1,13 @@
 #include "stdbool.h"
-#include "bitmap.h" 
+#include "bitmap.h"
+
+#ifndef GEOMETRY_H  
+#define GEOMETRY_H  
+
+typedef struct XYZ XYZ;
+struct XYZ {
+    double x, y, z;
+};
 
 typedef struct XY XY;
 struct XY {
@@ -7,6 +15,6 @@ struct XY {
 };
 
 bool oriented(XY a, XY b, XY c);
+XY project(XYZ xyz, HW frame);
 
-bool draw_triangle(Bitmap* bmp, XY p0, XY p1, XY p2, RGB color);
-
+#endif//GEOMETRY_H  
