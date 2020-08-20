@@ -129,7 +129,7 @@ double horizontality(Trig* tp)
     double xx = (b.y-a.y)*(c.z-a.z) - (b.z-a.z)*(c.y-a.y); 
     double yy = (b.z-a.z)*(c.x-a.x) - (b.x-a.x)*(c.z-a.z); 
     double zz = (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x); 
-    return sqrt(zz*zz / (xx*xx + yy*yy + zz*zz)); 
+    return zz*zz / (xx*xx + yy*yy + zz*zz); 
 }
 
 

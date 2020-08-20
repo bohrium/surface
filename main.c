@@ -88,12 +88,28 @@ void main()
     double radius= 1.20;
     draw_sphere  (&ts, cent, radius, ddx, dx); 
 
-    double altitude= 0.60;
+    double altitude= 1.00;
     double spread = 0.25;
+    double dt = 2*pi/9;
+    double low = 0.1;  
+    double high = 1.0;  
+    double base = radius+low*altitude;  
+    double slope = (high-low)*altitude/(3*pi);
     draw_cylinder(&ts, cent, normalize(up, radius+altitude), 0.01, ddx, dddx); 
-    for (double t = -pi; t < pi; t += 2*pi/6) {
-        XYZ axis = linear(linear(up, spread*sin(t), ax_b), spread*cos(t), ax_c);
-        draw_cylinder(&ts, cent, normalize(axis, radius+altitude), 0.01, dx, ddx); 
+    for (double t = 0.0; t < 3*pi-dt/2; t += dt) {
+        XYZ axis0 = linear(linear(up, spread*sin(t   ), ax_b), spread*cos(t   ), ax_c);
+        XYZ axis1 = linear(linear(up, spread*sin(t+dt), ax_b), spread*cos(t+dt), ax_c);
+        draw_cylinder(&ts, cent, normalize(axis0, radius+altitude), 0.01, dx, ddx); 
+        append_small_trig(&ts, (Trig){
+            linear(cent, 1.0, normalize(up   , t       *slope + base*cos(spread))),
+            linear(cent, 1.0, normalize(axis0, (t-dt/2)*slope + base)),
+            linear(cent, 1.0, normalize(axis1, (t+dt/2)*slope + base)),
+        }, dx); 
+        append_small_trig(&ts, (Trig){
+            linear(cent, 1.0, normalize(up   , (t-dt)  *slope +base*cos(spread))),
+            linear(cent, 1.0, normalize(up   , t       *slope +base*cos(spread))),
+            linear(cent, 1.0, normalize(axis0, (t-dt/2)*slope +base)),
+        }, dx); 
     }
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
