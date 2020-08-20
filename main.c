@@ -7,10 +7,56 @@
 
 #define pi M_PI
 
+void draw_sphere(Trigs* tsp, XYZ center, double rad, double dx)
+{
+    XYZ q0, q1, q2, q3;
+    for (double s = -pi/2; s < pi/2; s += dx) {
+        for (double t = -pi; t < pi; t += dx) {
+            double ss0 = sin(s+0.), cs0 = cos(s+0.); 
+            double ss1 = sin(s+dx), cs1 = cos(s+dx); 
+            double st0 = sin(t+0.), ct0 = cos(t+0.); 
+            double st1 = sin(t+dx), ct1 = cos(t+dx); 
+            q0 = (XYZ){center.x+rad*cs0*ct0, center.y+rad*ss0, center.z+rad*cs0*st0}; 
+            q1 = (XYZ){center.x+rad*cs1*ct0, center.y+rad*ss1, center.z+rad*cs1*st0}; 
+            q2 = (XYZ){center.x+rad*cs0*ct1, center.y+rad*ss0, center.z+rad*cs0*st1}; 
+            q3 = (XYZ){center.x+rad*cs1*ct1, center.y+rad*ss1, center.z+rad*cs1*st1}; 
+            append_trig(tsp, (Trig){q0,q1,q2});
+            append_trig(tsp, (Trig){q1,q2,q3});
+        }
+    }
+}
+
+void draw_cylinder(Trigs* tsp, XYZ center, XYZ axis, double rad, double dx, double dh)
+{
+    XYZ ax__ = axis.x == 0.0 ? (XYZ){1,0,0} :
+               axis.y == 0.0 ? (XYZ){0,1,0} :
+                               (XYZ){0,0,1} ;
+    XYZ ax_b = normalize(cross(axis, ax__)); 
+    XYZ ax_c = normalize(cross(axis, ax_b));
+    printf("a %.2f, %.2f, %.2f\n", axis.x, axis.y, axis.z);
+    printf("b %.2f, %.2f, %.2f\n", ax_b.x, ax_b.y, ax_b.z);
+    printf("c %.2f, %.2f, %.2f\n", ax_c.x, ax_c.y, ax_c.z);
+
+    XYZ cpos = linear(center, +1, axis);
+    XYZ cneg = linear(center, -1, axis);
+
+    XYZ q0, q1, q2, q3;
+    for (double t = -pi; t < pi; t += dx) {
+        q0 = linear(linear(cpos, rad*sin(t+0.), ax_b), rad*cos(t+0.), ax_c);
+        q1 = linear(linear(cpos, rad*sin(t+dx), ax_b), rad*cos(t+dx), ax_c);
+        q2 = linear(linear(cneg, rad*sin(t+0.), ax_b), rad*cos(t+0.), ax_c);
+        q3 = linear(linear(cneg, rad*sin(t+dx), ax_b), rad*cos(t+dx), ax_c);
+        append_small_trig(tsp, (Trig){q0,q1,q2}, dh);
+        append_small_trig(tsp, (Trig){q1,q2,q3}, dh);
+    }
+}
+
+
+
 void main()
 {
-    const int H = 512;
-    const int W = 512;
+    const int H = 1024;
+    const int W = 1024;
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /*~~~~~~~~  0.0. allocate resources  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -26,35 +72,14 @@ void main()
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /*~~~~~~~~  0.1. collect triangles  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    XYZ q0, q1, q2, q3;
 
-    /*----------------  0.1.0. ...from fenced cylinder  ---------------------*/
-    for (double t = -pi; t < pi; t += 0.25) {
-        q0 = (XYZ){0.9*sin(t+0.00), -0.1, 2.0 + 0.9*cos(t+0.00)}; 
-        q1 = (XYZ){0.9*sin(t+0.10), -0.1, 2.0 + 0.9*cos(t+0.10)}; 
-        q2 = (XYZ){0.9*sin(t+0.00), +0.1, 2.0 + 0.9*cos(t+0.00)}; 
-        q3 = (XYZ){0.9*sin(t+0.10), +0.1, 2.0 + 0.9*cos(t+0.10)}; 
-        append_small_trig(&ts, (Trig){q0,q1,q2});
-        append_small_trig(&ts, (Trig){q1,q2,q3});
-    }
-
-    /*----------------  0.1.1. ...from windowed sphere  ---------------------*/
-    double dx = 0.01;
-    for (double s = -pi/2; s < pi/2; s += dx) {
-        for (double t = -pi; t < pi; t += dx) {
-            if ( -pi/6<s && s<pi/6 && -pi/4<t && t<pi/3 ) continue; 
-            if ( pi/7<s && s<pi/3 && 4*pi/9<t && t<2*pi/3 ) continue; 
-            if ( s*(t-pi/2) > pi*pi/4 ) continue; 
-            if ( s*(t-pi) < -pi*pi/4 ) continue; 
-            if ( -pi/24<s && s<pi/24 ) continue; 
-            q0 = (XYZ){cos(s+0.)*cos(t+0.), sin(s+0.), 2+cos(s+0.)*sin(t+0.)}; 
-            q1 = (XYZ){cos(s+dx)*cos(t+0.), sin(s+dx), 2+cos(s+dx)*sin(t+0.)}; 
-            q2 = (XYZ){cos(s+0.)*cos(t+dx), sin(s+0.), 2+cos(s+0.)*sin(t+dx)}; 
-            q3 = (XYZ){cos(s+dx)*cos(t+dx), sin(s+dx), 2+cos(s+dx)*sin(t+dx)}; 
-            append_trig(&ts, (Trig){q0,q1,q2});
-            append_trig(&ts, (Trig){q1,q2,q3});
-        }
-    }
+    /*----------------  0.1.0. ...from top of a sphere  ---------------------*/
+    draw_sphere(&ts,   (XYZ){0, -1.5, 2.0}, 1.0, 0.02); 
+    draw_sphere(&ts,   (XYZ){0, -0.5, 2.0}, 0.1, 0.02); 
+    draw_sphere(&ts,   (XYZ){0, -0.3, 2.0}, 0.1, 0.02); 
+    draw_sphere(&ts,   (XYZ){0, -0.1, 2.0}, 0.1, 0.02); 
+    draw_cylinder(&ts, (XYZ){0,  0.1, 2.0}, (XYZ){+0.2, 0.0, 0.8}, 0.4, 0.1, 0.04); 
+    draw_cylinder(&ts, (XYZ){0,  0.3, 2.0}, (XYZ){-0.8, 0.0, 0.2}, 0.4, 0.1, 0.04); 
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /*~~~~~~~~  0.2. render triangles  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -72,7 +97,7 @@ void main()
         double avgx = (t.a.x + t.b.x + t.c.x)/3.0;
         double avgy = (t.a.y + t.b.y + t.c.y)/3.0;
         double avgz = (t.a.z + t.b.z + t.c.z)/3.0;
-        double lum = (0.1 + 0.9*horizontality(&t))/(0.5+0.5*avgz);
+        double lum = (0.2 + 0.8*horizontality(&t))/(0.5+0.5*avgz);
         RGB color = {
             50+200*lum*(1 + tanh(avgx))/2,
             50+200*lum*(1 + tanh(avgy))/2,
@@ -88,7 +113,7 @@ void main()
 
     quick_blur(&bm);
     halve(&bm, &antialiased);
-    write_to(&antialiased, "moo2.bmp");
+    write_to(&antialiased, "moo.bmp");
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /*~~~~~~~~  0.4. free resources  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/

@@ -7,7 +7,7 @@
 #define MIN(X,Y) ((X)<(Y)?(X):(Y)) 
 #define MAX(X,Y) ((X)>(Y)?(X):(Y)) 
 
-bool draw_trig(Bitmap* bmp, XYZ q0, XYZ q1, XYZ q2, RGB color)
+void draw_trig(Bitmap* bmp, XYZ q0, XYZ q1, XYZ q2, RGB color)
 {
     XY p0 = project(q0, bmp->dims);
     XY p1 = project(q1, bmp->dims);
@@ -17,6 +17,8 @@ bool draw_trig(Bitmap* bmp, XYZ q0, XYZ q1, XYZ q2, RGB color)
     int H = MIN(bmp->dims.height, MAX(MAX(p0.y, p1.y), p2.y));
     int w = MAX(0               , MIN(MIN(p0.x, p1.x), p2.x));
     int W = MIN(bmp->dims.width , MAX(MAX(p0.x, p1.x), p2.x));
+
+    if ( H<h || W<w ) { return; }
 
     if (!oriented(p0, p1, p2)) {
         XY tmp = p2;
