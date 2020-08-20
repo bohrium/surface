@@ -28,18 +28,12 @@ void draw_sphere(Trigs* tsp, XYZ center, double rad, double ds, double dt)
 
 void draw_cylinder(Trigs* tsp, XYZ center, XYZ axis, double rad, double dt, double dh)
 {
-    XYZ ax__ = axis.x == 0.0 ? (XYZ){1,0,0} :
-               axis.y == 0.0 ? (XYZ){0,1,0} :
-                               (XYZ){0,0,1} ;
-    XYZ ax_b = normalize(cross(axis, ax__)); 
-    XYZ ax_c = normalize(cross(axis, ax_b));
-    printf("a %.2f, %.2f, %.2f\n", axis.x, axis.y, axis.z);
-    printf("b %.2f, %.2f, %.2f\n", ax_b.x, ax_b.y, ax_b.z);
-    printf("c %.2f, %.2f, %.2f\n", ax_c.x, ax_c.y, ax_c.z);
+    XYZ ax_b, ax_c;
+    frame_at(axis, &ax_b, &ax_c);
 
     XYZ q0, q1, q2, q3;
     for (double t = -pi; t < pi; t += dt) {
-        for (double h = -1.0; h < 1.0; h += dh) {
+        for (double h = 0.0; h < 1.0; h += dh) {
             XYZ cpos = linear(center, h   , axis);
             XYZ cneg = linear(center, h+dh, axis);
             q0 = linear(linear(cpos, rad*sin(t+0.), ax_b), rad*cos(t+0.), ax_c);
@@ -73,14 +67,34 @@ void main()
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /*~~~~~~~~  0.1. collect triangles  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
+    double dx   = 0.01;
+    double ddx  = 0.03; 
+    double dddx = 0.07;
 
-    /*----------------  0.1.0. ...from top of a sphere  ---------------------*/
-    draw_sphere(&ts,   (XYZ){0, -1.5, 2.0}, 1.0, 0.02, 0.05); 
-    draw_sphere(&ts,   (XYZ){0, -0.5, 2.0}, 0.1, 0.02, 0.05); 
-    draw_sphere(&ts,   (XYZ){0, -0.3, 2.0}, 0.1, 0.02, 0.05); 
-    draw_sphere(&ts,   (XYZ){0, -0.1, 2.0}, 0.1, 0.02, 0.05); 
-    draw_cylinder(&ts, (XYZ){0,  0.1, 2.0}, (XYZ){+0.2, 0.0, 0.8}, 0.4, 0.05, 0.02); 
-    draw_cylinder(&ts, (XYZ){0,  0.3, 2.0}, (XYZ){-0.8, 0.0, 0.2}, 0.4, 0.05, 0.02); 
+    ///*----------------  0.1.0. ...from top of a sphere  ---------------------*/
+    //draw_sphere(&ts,   (XYZ){0, -1.5, 2.0}, 1.0, 0.02, 0.05); 
+    //draw_sphere(&ts,   (XYZ){0, -0.5, 2.0}, 0.1, 0.02, 0.05); 
+    //draw_sphere(&ts,   (XYZ){0, -0.3, 2.0}, 0.1, 0.02, 0.05); 
+    //draw_sphere(&ts,   (XYZ){0, -0.1, 2.0}, 0.1, 0.02, 0.05); 
+    //draw_cylinder(&ts, (XYZ){0,  0.1, 2.0}, (XYZ){+0.2, 0.0, 0.8}, 0.4, 0.05, 0.02); 
+    //draw_cylinder(&ts, (XYZ){0,  0.3, 2.0}, (XYZ){-0.8, 0.0, 0.2}, 0.4, 0.05, 0.02); 
+    
+    XYZ cent = {0.00,-1.30, 2.00}; 
+    XYZ up   = normalize((XYZ){0.00, 1.00,-0.60}, 1.0); 
+    XYZ ax_b;
+    XYZ ax_c;
+    frame_at(up, &ax_b, &ax_c);
+
+    double radius= 1.20;
+    draw_sphere  (&ts, cent, radius, ddx, dx); 
+
+    double altitude= 0.60;
+    double spread = 0.25;
+    draw_cylinder(&ts, cent, normalize(up, radius+altitude), 0.01, ddx, dddx); 
+    for (double t = -pi; t < pi; t += 2*pi/6) {
+        XYZ axis = linear(linear(up, spread*sin(t), ax_b), spread*cos(t), ax_c);
+        draw_cylinder(&ts, cent, normalize(axis, radius+altitude), 0.01, dx, ddx); 
+    }
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /*~~~~~~~~  0.2. render triangles  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -112,6 +126,9 @@ void main()
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /*~~~~~~~~  0.3. write anti-aliased version to file  ~~~~~~~~~~~~~~~~~~~~*/
 
+    //halve(&bm, &antialiased);
+    //quick_blur(&antialiased);
+    //twice(&antialiased, &bm);
     quick_blur(&bm);
     halve(&bm, &antialiased);
     write_to(&antialiased, "moo.bmp");

@@ -11,8 +11,10 @@ struct XYZ {
 };
 
 XYZ cross(XYZ v, XYZ w);
-XYZ normalize(XYZ v);
+XYZ normalize(XYZ v, double n);
 XYZ linear(XYZ v, double c, XYZ w);
+
+void frame_at(XYZ v, XYZ* perp_b, XYZ* perp_c);
 
 typedef struct XY XY;
 struct XY {

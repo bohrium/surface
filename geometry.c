@@ -14,13 +14,13 @@ XYZ cross(XYZ v, XYZ w)
         v.x*w.y - v.y*w.x,
     };
 }
-XYZ normalize(XYZ v)
+XYZ normalize(XYZ v, double n)
 {
     double norm = sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
     return (XYZ){
-        v.x/norm,
-        v.y/norm,
-        v.z/norm,
+        n*v.x/norm,
+        n*v.y/norm,
+        n*v.z/norm,
     };
 }
 XYZ linear(XYZ v, double c, XYZ w)
@@ -30,6 +30,14 @@ XYZ linear(XYZ v, double c, XYZ w)
         v.y + c*w.y,
         v.z + c*w.z,
     };
+}
+void frame_at(XYZ v, XYZ* perp_b, XYZ* perp_c)
+{
+    XYZ _ = v.x == 0.0 ? (XYZ){1,0,0} :
+            v.y == 0.0 ? (XYZ){0,1,0} :
+                         (XYZ){0,0,1} ;
+    *perp_b = normalize(cross(v, _      ), 1.0); 
+    *perp_c = normalize(cross(v, *perp_b), 1.0);
 }
 
 bool oriented(XY a, XY b, XY c)
