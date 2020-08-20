@@ -46,6 +46,25 @@ void draw_cylinder(Trigs* tsp, XYZ center, XYZ axis, double rad, double dt, doub
     }
 }
 
+void draw_ruled(Trigs* tsp, XYZ a, XYZ b, XYZ c, XYZ d, double ds, double dt)
+{
+    XYZ ba = linear(b, -1.0, a); 
+    XYZ ca = linear(c, -1.0, a); 
+    XYZ db = linear(d, -1.0, b); 
+    XYZ q0, q1, q2, q3;
+    for (double s = 0.0; s < 1.0-ds/2; s += ds) {
+        for (double t = 0.0; t < 1.0-dt/2; t += dt) {
+            q0 = linear(linear(linear(a, s   , ba), (1-(s   ))*(t   ), ca), (s   )*(t   ), db); 
+            q1 = linear(linear(linear(a, s+ds, ba), (1-(s+ds))*(t   ), ca), (s+ds)*(t   ), db); 
+            q2 = linear(linear(linear(a, s   , ba), (1-(s   ))*(t+dt), ca), (s   )*(t+dt), db); 
+            q3 = linear(linear(linear(a, s+ds, ba), (1-(s+ds))*(t+dt), ca), (s+ds)*(t+dt), db); 
+            append_trig(tsp, (Trig){q0,q1,q2});
+            append_trig(tsp, (Trig){q1,q2,q3});
+        }
+    }
+}
+
+
 
 
 void main()
@@ -67,9 +86,9 @@ void main()
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /*~~~~~~~~  0.1. collect triangles  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    double dx   = 0.01;
+    double dddx = 0.01;
     double ddx  = 0.03; 
-    double dddx = 0.07;
+    double dx   = 0.15;
 
     ///*----------------  0.1.0. ...from top of a sphere  ---------------------*/
     //draw_sphere(&ts,   (XYZ){0, -1.5, 2.0}, 1.0, 0.02, 0.05); 
@@ -86,30 +105,45 @@ void main()
     frame_at(up, &ax_b, &ax_c);
 
     double radius= 1.20;
-    draw_sphere  (&ts, cent, radius, ddx, dx); 
+    draw_sphere  (&ts, cent, radius, dddx, ddx); 
 
     double altitude= 1.00;
     double spread = 0.25;
-    double dt = 2*pi/9;
-    double low = 0.1;  
+    double dt = 2*pi/6;
+    double ddt = dt/6;
+    double low = 0.2;  
     double high = 1.0;  
     double base = radius+low*altitude;  
-    double slope = (high-low)*altitude/(3*pi);
-    draw_cylinder(&ts, cent, normalize(up, radius+altitude), 0.01, ddx, dddx); 
-    for (double t = 0.0; t < 3*pi-dt/2; t += dt) {
+    double run = 3*pi;
+    double slope = (high-low)*altitude/run;
+    draw_cylinder(&ts, cent, normalize(up, (radius+altitude)*cos(spread)), 0.01, dx, ddx); 
+    for (double t = 0.0; t < run-dt/2; t += dt) {
         XYZ axis0 = linear(linear(up, spread*sin(t   ), ax_b), spread*cos(t   ), ax_c);
         XYZ axis1 = linear(linear(up, spread*sin(t+dt), ax_b), spread*cos(t+dt), ax_c);
         draw_cylinder(&ts, cent, normalize(axis0, radius+altitude), 0.01, dx, ddx); 
-        append_small_trig(&ts, (Trig){
-            linear(cent, 1.0, normalize(up   , t       *slope + base*cos(spread))),
-            linear(cent, 1.0, normalize(axis0, (t-dt/2)*slope + base)),
-            linear(cent, 1.0, normalize(axis1, (t+dt/2)*slope + base)),
-        }, dx); 
-        append_small_trig(&ts, (Trig){
-            linear(cent, 1.0, normalize(up   , (t-dt)  *slope +base*cos(spread))),
-            linear(cent, 1.0, normalize(up   , t       *slope +base*cos(spread))),
-            linear(cent, 1.0, normalize(axis0, (t-dt/2)*slope +base)),
-        }, dx); 
+    }
+    for (double t = 0.0; t < run-ddt/2; t += ddt) {
+        XYZ axis0 = linear(linear(up, spread*sin(t    ), ax_b), spread*cos(t    ), ax_c);
+        XYZ axis1 = linear(linear(up, spread*sin(t+ddt), ax_b), spread*cos(t+ddt), ax_c);
+        draw_ruled(
+            &ts,
+            linear(cent, 1.0, normalize(up   , slope*t         + base*cos(spread))),
+            linear(cent, 1.0, normalize(up   , slope*(t+ddt)    + base*cos(spread))),
+            linear(cent, 1.0, normalize(axis0, slope*(t-ddt/2) + base)),
+            linear(cent, 1.0, normalize(axis1, slope*(t+ddt/2) + base)),
+            dx,
+            ddx 
+        );
+        //append_small_trig(&ts, (Trig){
+        //    linear(cent, 1.0, normalize(up   , slope*t         + base*cos(spread))),
+        //    linear(cent, 1.0, normalize(axis0, slope*(t-ddt/2) + base)),
+        //    linear(cent, 1.0, normalize(axis1, slope*(t+ddt/2) + base)),
+        //}, dx); 
+        //append_small_trig(&ts, (Trig){
+        //    linear(cent, 1.0, normalize(up   , slope*(t-ddt)   + base*cos(spread))),
+        //    linear(cent, 1.0, normalize(up   , slope*t         + base*cos(spread))),
+        //    linear(cent, 1.0, normalize(axis0, slope*(t-ddt/2) + base)),
+        //}, dx); 
     }
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
