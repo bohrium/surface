@@ -12,12 +12,7 @@ void main()
     Bitmap bm = (Bitmap){NULL, (HW){0, 0}};
     allocate(&bm, (HW){H, W});
 
-    // background
-    for (int r = 0; r != H; ++r) {
-        for (int c = 0; c != W; ++c) {
-            bm.data[r * W + c] = (RGB) {250, 250, 250};
-        }
-    }
+    to_color(&bm, (RGB){250, 250, 250});
 
     XYZ q0, q1, q2, q3;
     Trigs ts;
@@ -34,17 +29,17 @@ void main()
     }
 
     // sphere
-    for (double s = -3.14/2; s < 3.14/2; s += 0.005) {
-        for (double t = -3.14; t < 3.14; t += 0.005) {
+    for (double s = -3.14/2; s < 3.14/2; s += 0.01) {
+        for (double t = -3.14; t < 3.14; t += 0.01) {
             if ( -3.14/6<s && s<3.14/6 && -3.14/4<t && t<3.14/3 ) continue; 
             if ( 3.14/7<s && s<3.14/3 && 4*3.14/9<t && t<2*3.14/3 ) continue; 
             if ( s*(t-3.14/2) > 3.14*3.14/4 ) continue; 
             if ( s*(t-3.14) < -3.14*3.14/4 ) continue; 
             if ( -3.14/24<s && s<3.14/24 ) continue; 
             q0 = (XYZ){cos(s+0.00)*cos(t+0.00), sin(s+0.00), 2.0 + cos(s+0.00)*sin(t+0.00)}; 
-            q1 = (XYZ){cos(s+0.005)*cos(t+0.00), sin(s+0.005), 2.0 + cos(s+0.005)*sin(t+0.00)}; 
-            q2 = (XYZ){cos(s+0.00)*cos(t+0.005), sin(s+0.00), 2.0 + cos(s+0.00)*sin(t+0.005)}; 
-            q3 = (XYZ){cos(s+0.005)*cos(t+0.005), sin(s+0.005), 2.0 + cos(s+0.005)*sin(t+0.005)}; 
+            q1 = (XYZ){cos(s+0.01)*cos(t+0.00), sin(s+0.01), 2.0 + cos(s+0.01)*sin(t+0.00)}; 
+            q2 = (XYZ){cos(s+0.00)*cos(t+0.01), sin(s+0.00), 2.0 + cos(s+0.00)*sin(t+0.01)}; 
+            q3 = (XYZ){cos(s+0.01)*cos(t+0.01), sin(s+0.01), 2.0 + cos(s+0.01)*sin(t+0.01)}; 
             append_trig(&ts, (Trig){q0,q1,q2});
             append_trig(&ts, (Trig){q1,q2,q3});
         }
@@ -65,7 +60,17 @@ void main()
         });
     }
 
-    write_to(&bm, "moo.bmp");
+    Bitmap smaller = (Bitmap){NULL, (HW){0, 0}};
+
+    halve(&bm, &smaller);
+    twice(&smaller, &bm);
+    write_to(&smaller, "moo.bmp");
+
+    quick_blur(&bm);
+    halve(&bm, &smaller);
+    write_to(&smaller, "moo2.bmp");
+
     deallocate(&bm);
+    deallocate(&smaller);
     free_trigs(&ts);
 }

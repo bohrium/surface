@@ -29,4 +29,10 @@ void deallocate(Bitmap* bmp);
 void read_from(Bitmap* bmp, const char* filename);
 void write_to(Bitmap* bmp, const char* filename);
 
+void to_color(Bitmap* bmp, RGB color);
+void quick_blur(Bitmap* bmp);
+void halve(Bitmap* src, Bitmap* dst);
+void twice(Bitmap* src, Bitmap* dst);
+void quick_sharp(Bitmap* bmp);
+
 #endif//BITMAP_H
